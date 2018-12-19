@@ -5,6 +5,10 @@ on post-fs-data
 on property:sys.boot_completed=1
     start cashsvr
 
+on property:vendor.cash.restart=1
+    setprop vendor.cash.restart 0
+    restart cashsvr
+
 service cashsvr /vendor/bin/cashsvr
     class main
     user root

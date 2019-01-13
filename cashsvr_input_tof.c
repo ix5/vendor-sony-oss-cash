@@ -336,6 +336,7 @@ int cash_input_tof_thr_read(struct cash_vl53l0 *stmvl_cur,
 
 	rc = read(tof_fd, &evt, sizeof(evt));
 	if (!rc) {
+		ALOGE("%s: read failed: %s", __func__, strerror(errno));
 		return rc;
 	}
 
@@ -528,27 +529,49 @@ static void cash_input_tof_thread(void)
 	int i;
 	struct epoll_event pevt[10];
 
+	if (cash_thread_is_running[THREAD_TOF] == true) {
+		ALOGE("%s: already running!", __func__);
+	}
+	cash_thread_is_running[THREAD_TOF] = true;
+
 	cash_tof_enable(true);
 
 	ALOGD("ToF Thread started");
 
 	while (cash_thread_run[THREAD_TOF]) {
+		/* ALOGD("%s: epoll_wait", __func__); */
 		ret = epoll_wait(cash_pollfd[FD_TOF], pevt,
 					10, cash_pfdelay_ms[FD_TOF]);
+		/* ALOGD("%s: epoll_wait ret=%d", __func__, ret); */
+		if (!cash_thread_run[THREAD_TOF]) {
+			ALOGE("%s: Should be stopped already, going to cleanup", __func__);
+			goto cleanup;
+		}
 		for (i = 0; i < ret; i++) {
 			if (pevt[i].events & EPOLLERR ||
 			    pevt[i].events & EPOLLHUP ||
 			    !(pevt[i].events & EPOLLIN))
 				continue;
 
-			if (cash_pollevt[FD_TOF].data.fd)
+			if (!cash_thread_run[THREAD_TOF]) {
+				ALOGE("%s: In loop, should've stopped already, going to cleanup", __func__);
+				goto cleanup;
+			}
+			if (cash_pollevt[FD_TOF].data.fd) {
+				ALOGD("%s: pollevt start", __func__);
 				cash_input_tof_thr_read(&stmvl_status,
 					cash_pollevt[FD_TOF].data.fd);
+				/* ALOGD("%s: pollevt done", __func__); */
+			}
 		}
 	}
 
-	cash_tof_enable(false);
+	ALOGD("ToF Thread stopped");
 
+cleanup:
+	cash_tof_enable(false);
+	ALOGD("ToF Thread really stopped");
+	cash_thread_is_running[THREAD_TOF] = false;
 	pthread_exit((void*)((int)0));
 }
 
@@ -559,6 +582,7 @@ struct thread_data cash_tof_thread_data = {
 
 int cash_input_tof_start(bool start)
 {
+	ALOGE("%s: %s", __func__, start ? "starting" : "stopping");
 	return cash_input_threadman(start, &cash_tof_thread_data);
 }
 
@@ -619,6 +643,7 @@ int cash_input_tof_init(void)
 	}
 
 	cash_thread_run[THREAD_TOF] = false;
+	cash_thread_is_running[THREAD_TOF] = false;
 /*
 	rc = cash_input_threadman(true, THREAD_TOF);
 	if (rc < 0)

@@ -350,27 +350,49 @@ static void cash_input_rgbc_thread(void)
 	int i;
 	struct epoll_event pevt[10];
 
+	if (cash_thread_is_running[THREAD_RGBC] == true) {
+		ALOGE("%s: Already running!", __func__);
+	}
+	cash_thread_is_running[THREAD_RGBC] = true;
+
 	cash_rgbc_enable(true);
 
 	ALOGD("RGBC Thread started");
 
 	while (cash_thread_run[THREAD_RGBC]) {
+		/* ALOGD("%s: epoll_wait", __func__); */
 		ret = epoll_wait(cash_pollfd[FD_RGBC], pevt,
 					10, cash_pfdelay_ms[FD_RGBC]);
+		/* ALOGD("%s: epoll_wait ret=%d", __func__, ret); */
+		if (!cash_thread_run[THREAD_RGBC]) {
+			ALOGE("%s: Should be stopped already, going to cleanup", __func__);
+			goto cleanup;
+		}
 		for (i = 0; i < ret; i++) {
 			if (pevt[i].events & EPOLLERR ||
 			    pevt[i].events & EPOLLHUP ||
 			    !(pevt[i].events & EPOLLIN))
 				continue;
 
-			if (cash_pollevt[FD_RGBC].data.fd)
+			if (!cash_thread_run[THREAD_RGBC]) {
+				ALOGE("%s: In loop, should've stopped already, going to cleanup", __func__);
+				goto cleanup;
+			}
+			if (cash_pollevt[FD_RGBC].data.fd) {
+				ALOGD("%s: pollevt start", __func__);
 				cash_input_rgbc_thr_read(&tcsvl_status,
 					cash_pollevt[FD_RGBC].data.fd);
+				/* ALOGD("%s: pollevt done", __func__); */
+			}
 		}
 	}
 
-	cash_rgbc_enable(false);
+	ALOGD("RGBC Thread stopped");
 
+cleanup:
+	cash_rgbc_enable(false);
+	cash_thread_is_running[THREAD_RGBC] = false;
+	ALOGD("RGBC Thread really stopped");
 	pthread_exit((void*)((int)0));
 }
 
@@ -381,6 +403,7 @@ struct thread_data cash_rgbc_thread_data = {
 
 int cash_input_rgbc_start(bool start)
 {
+	ALOGE("%s: %s", __func__, start ? "starting" : "stopping");
 	return cash_input_threadman(start, &cash_rgbc_thread_data);
 }
 
@@ -441,6 +464,7 @@ int cash_input_rgbc_init(void)
 	}
 
 	cash_thread_run[THREAD_RGBC] = false;
+	cash_thread_is_running[THREAD_RGBC] = false;
 
 	return 0;
 }

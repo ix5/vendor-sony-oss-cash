@@ -40,6 +40,7 @@ struct thread_data {
 };
 
 bool cash_thread_run[THREAD_MAX];
+bool cash_thread_is_running[THREAD_MAX];
 pthread_t cash_pthreads[THREAD_MAX];
 struct pollfd cash_pfds[FD_MAX];
 struct epoll_event cash_pollevt[FD_MAX];
@@ -51,4 +52,3 @@ static const char devfs_input_str[] = "/dev/input/event";
 
 int cash_input_threadman(bool start, struct thread_data *thread_data);
 int cash_set_parameter(char* path, char* value, int value_len);
-

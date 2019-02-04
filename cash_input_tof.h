@@ -19,29 +19,29 @@
  * limitations under the License.
  */
 
-#define TOF_DEFAULT_MIN_MM			0
-#define TOF_DEFAULT_MAX_MM			1030
-#define TOF_STABILIZATION_DEF_RUNS		4
-#define TOF_STABILIZATION_WAIT_MS		10
-#define TOF_STABILIZATION_HYST_MM		7
-#define TOF_STABILIZATION_MATCH_NO		3
+#define TOF_DEFAULT_MIN_MM 0
+#define TOF_DEFAULT_MAX_MM 1030
+#define TOF_STABILIZATION_DEF_RUNS 4
+#define TOF_STABILIZATION_WAIT_MS 10
+#define TOF_STABILIZATION_HYST_MM 7
+#define TOF_STABILIZATION_MATCH_NO 3
 
 struct cash_vl53l0 {
-	int range_mm;
-	int distance;
-	int range_status;
-	int measure_mode;
+    int range_mm;
+    int distance;
+    int range_status;
+    int measure_mode;
 };
 
 int cash_input_tof_read(struct cash_vl53l0 *stmvl_cur,
-	uint16_t want_code);
+                        uint16_t want_code);
 int cash_tof_read_stabilized(
-	struct cash_vl53l0 *stmvl_final,
-	int runs, int nmatch, int sleep_ms, int hyst);
+    struct cash_vl53l0 *stmvl_final,
+    int runs, int nmatch, int sleep_ms, int hyst);
 int cash_tof_read_inst(struct cash_vl53l0 *stmvl_final);
 int cash_tof_thr_read_stabilized(
-	struct cash_vl53l0 *stmvl_final,
-	int runs, int nmatch, int sleep_ms, int hyst);
+    struct cash_vl53l0 *stmvl_final,
+    int runs, int nmatch, int sleep_ms, int hyst);
 int cash_input_tof_start(bool start);
 bool cash_input_is_tof_alive(void);
 int cash_input_tof_init(void);

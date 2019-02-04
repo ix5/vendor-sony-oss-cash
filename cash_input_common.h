@@ -19,24 +19,23 @@
  * limitations under the License.
  */
 
-#define ITERATE_MAX_DEVS	9
+#define ITERATE_MAX_DEVS 9
 
 enum thread_number {
-	THREAD_TOF,
-	THREAD_RGBC,
-	THREAD_MAX
+    THREAD_TOF,
+    THREAD_RGBC,
+    THREAD_MAX
 };
 
-
 enum fd_number {
-	FD_TOF,
-	FD_RGBC,
-	FD_MAX
+    FD_TOF,
+    FD_RGBC,
+    FD_MAX
 };
 
 struct thread_data {
-	enum thread_number thread_no;
-	void *thread_func;
+    enum thread_number thread_no;
+    void *thread_func;
 };
 
 bool cash_thread_run[THREAD_MAX];

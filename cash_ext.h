@@ -21,8 +21,8 @@
 #define CASHSVR_EXT_H
 
 struct exptime_iso_tpl {
-	int64_t exptime;
-	int32_t iso;
+    int64_t exptime;
+    int32_t iso;
 };
 
 int cash_tof_start(int value);

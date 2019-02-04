@@ -21,15 +21,15 @@
  */
 
 struct cash_tcs3490 {
-	int red;
-	int green;
-	int blue;
-	int clear;
-	int ir;
+    int red;
+    int green;
+    int blue;
+    int clear;
+    int ir;
 };
 
 int cash_set_parameter(char* path, char* value, int value_len);
-int cash_rgbc_read_inst(struct cash_tcs3490 *tcsvl_final);
+int cash_rgbc_read_inst(struct cash_tcs3490* tcsvl_final);
 int cash_input_rgbc_start(bool start);
 bool cash_input_is_rgbc_alive(void);
 int cash_input_rgbc_init(void);

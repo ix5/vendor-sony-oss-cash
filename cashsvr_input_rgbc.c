@@ -71,6 +71,24 @@ struct cash_tcs3490 tcsvl_status;
 #define LEN_ITIME	9
 #define LEN_GAIN	9
 
+int cash_set_parameter(char* path, char* value, int value_len) {
+	int fd, rc;
+
+	fd = open(path, O_WRONLY);
+	if (fd < 0) {
+		ALOGD("Cannot open %s", path);
+		return -1;
+	}
+
+	rc = write(fd, value, value_len);
+	if (rc < value_len) {
+		ALOGW("ERROR! Cannot write value %s to %s", value, path);
+		return -1;
+	}
+	close(fd);
+	return 0;
+}
+
 int cash_rgbc_enable(bool enable)
 {
 	int rc;
@@ -344,7 +362,7 @@ int cash_rgbc_read_inst(struct cash_tcs3490 *tcsvl_final)
 	return 1;
 }
 
-static void cash_input_rgbc_thread(void)
+void cash_input_rgbc_thread(void)
 {
 	int ret;
 	int i;
@@ -372,16 +390,6 @@ static void cash_input_rgbc_thread(void)
 	cash_rgbc_enable(false);
 
 	pthread_exit((void*)((int)0));
-}
-
-struct thread_data cash_rgbc_thread_data = {
-	.thread_no = THREAD_RGBC,
-	.thread_func = cash_input_rgbc_thread
-};
-
-int cash_input_rgbc_start(bool start)
-{
-	return cash_input_threadman(start, &cash_rgbc_thread_data);
 }
 
 bool cash_input_is_rgbc_alive(void)
@@ -444,4 +452,3 @@ int cash_input_rgbc_init(void)
 
 	return 0;
 }
-

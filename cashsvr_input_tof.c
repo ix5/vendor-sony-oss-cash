@@ -522,7 +522,7 @@ again:
 	return score;
 }
 
-static void cash_input_tof_thread(void)
+void cash_input_tof_thread(void)
 {
 	int ret;
 	int i;
@@ -550,16 +550,6 @@ static void cash_input_tof_thread(void)
 	cash_tof_enable(false);
 
 	pthread_exit((void*)((int)0));
-}
-
-struct thread_data cash_tof_thread_data = {
-	.thread_no = THREAD_TOF,
-	.thread_func = cash_input_tof_thread
-};
-
-int cash_input_tof_start(bool start)
-{
-	return cash_input_threadman(start, &cash_tof_thread_data);
 }
 
 bool cash_input_is_tof_alive(void)
@@ -619,11 +609,6 @@ int cash_input_tof_init(void)
 	}
 
 	cash_thread_run[THREAD_TOF] = false;
-/*
-	rc = cash_input_threadman(true, THREAD_TOF);
-	if (rc < 0)
-		return rc;
-*/
 	return 0;
 }
 

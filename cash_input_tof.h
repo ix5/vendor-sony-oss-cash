@@ -45,4 +45,4 @@ int cash_tof_thr_read_stabilized(
 int cash_input_tof_start(bool start);
 bool cash_input_is_tof_alive(void);
 int cash_input_tof_init(void);
-
+void cash_input_tof_thread(void);

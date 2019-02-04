@@ -50,5 +50,3 @@ static const char sysfs_input_str[] = "/sys/class/input/input";
 static const char devfs_input_str[] = "/dev/input/event";
 
 int cash_input_threadman(bool start, struct thread_data *thread_data);
-int cash_set_parameter(char* path, char* value, int value_len);
-

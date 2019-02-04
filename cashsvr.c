@@ -23,6 +23,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/poll.h>
+#include <sys/epoll.h>
 #include <sys/un.h>
 #include <dlfcn.h>
 #include <fcntl.h>
@@ -40,6 +42,7 @@
 
 #include <libpolyreg/polyreg.h>
 #include "cash_private.h"
+#include "cash_input_common.h"
 #include "cash_input_tof.h"
 #include "cash_input_rgbc.h"
 #include "cash_ext.h"
@@ -59,18 +62,27 @@ static struct sockaddr_un server_addr;
 static pthread_t cashsvr_thread;
 static bool ucthread_run = true;
 
+struct thread_data cash_rgbc_thread_data = {
+	.thread_no = THREAD_RGBC,
+	.thread_func = cash_input_rgbc_thread
+};
+struct thread_data cash_tof_thread_data = {
+	.thread_no = THREAD_TOF,
+	.thread_func = cash_input_tof_thread
+};
+
 /* Debugging defines */
 // #define DEBUG_CMDS
 // #define DEBUG_FOCUS
 
-static int cashsvr_tof_start(int ena)
+static int cashsvr_tof_start(int enable)
 {
-	return cash_input_tof_start(ena);
+	return cash_input_threadman(enable, &cash_tof_thread_data);
 }
 
-static int cashsvr_rgbc_start(int ena)
+static int cashsvr_rgbc_start(int enable)
 {
-	return cash_input_rgbc_start(ena);
+	return cash_input_threadman(enable, &cash_rgbc_thread_data);
 }
 
 /*
@@ -152,7 +164,7 @@ int32_t cashsvr_get_exptime_iso(struct cash_response *cash_resp) {
 
 	iso = (int32_t)polyreg_f(rgbc_data.clear, clear_iso_conf.terms,
 					cash_conf.rgbc_polyreg_degree);
-	
+
 	for (i = 0; i < clear_iso_conf.num_steps; i++) {
 		if (iso >= clear_iso_conf.table[i].output_val) {
 			break;
@@ -231,6 +243,35 @@ static int32_t cash_dispatch(struct cash_params *params, struct cash_response *c
 
 	cash_resp->retval = rc;
 	return rc;
+}
+
+/* Start/stop threads */
+int cash_input_threadman(bool start, struct thread_data *thread_data)
+{
+	int ret = -1;
+	int thread_no = thread_data->thread_no;
+
+	if (start == false) {
+		static void *join_retval;  // Unused
+		/* Instruct thread to stop: */
+		cash_thread_run[thread_no] = false;
+		/* Wait until thread really exits: */
+		pthread_join(cash_pthreads[thread_no], join_retval);
+		return 0;
+	};
+
+	cash_thread_run[thread_no] = true;
+
+	if (thread_no < THREAD_MAX) {
+		ret = pthread_create(&cash_pthreads[thread_no], NULL,
+				thread_data->thread_func, NULL);
+		if (ret != 0) {
+			ALOGE("Cannot create thread with number %d", thread_no);
+			return -ENXIO;
+		}
+	}
+
+	return ret;
 }
 
 static void *cashsvr_looper(void *unusedvar UNUSED)

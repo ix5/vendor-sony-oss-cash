@@ -85,11 +85,11 @@ struct cash_response {
 	int32_t iso;
 };
 
-int parse_cash_tof_xml_data(char* filepath, char* node, 
+int parse_cash_tof_xml_data(char* filepath, char* node,
 			struct cash_polyreg_params *cash_focus,
 			struct cash_configuration *cash_config);
 
-int parse_cash_rgbc_xml_data(char* filepath, char* node, 
+int parse_cash_rgbc_xml_data(char* filepath, char* node,
 			struct cash_polyreg_params *cash_rgbc_clear_iso,
 			struct cash_configuration *cash_config);
 
@@ -97,6 +97,3 @@ int parse_cash_rgbc_xml_data(char* filepath, char* node,
 #define REPLY_SHORT_FOCUS_LEN		2
 #define FOCUS_PROCESSING_MAX_PASS	6
 #define FOCTBL_POLYREG_DEGREE		5
-
-
-
